@@ -3,7 +3,7 @@ services:
   - docker
 language: bash
 env:
-  - apache_version=2.4.37-r0
+  - apache_version=2.4.35-r0
 script:
 # prepare qemu
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
