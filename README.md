@@ -12,10 +12,9 @@ $apache_version is version of apache you want to build.
 
 To run it (with image on docker hub) :
 
-    docker run -ti --name apache dtroncy/rpi-apache
+    docker run -d --name apache dtroncy/rpi-apache
 
 Description of parameters :
-  - **-t** : Allocate a pseudo-tty
-  - **-i** : Keep STDIN open even if not attached
+  - **-d** : Run as Daemon
   - **--name apache** : Container's name
   - **dtroncy/rpi-apache** : Image's name
