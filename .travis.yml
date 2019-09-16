@@ -4,7 +4,13 @@ services:
 language: bash
 env:
   - apache_version=2.4.35-r0
+addons:
+  apt:
+    packages:
+      - docker-ce
 script:
+# activate experimental docker feature
+  - export DOCKER_CLI_EXPERIMENTAL=enabled
 # prepare qemu
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 # build image
@@ -17,3 +23,10 @@ script:
       docker push dtroncy/rpi-apache:$apache_version
       docker push dtroncy/rpi-apache
     fi
+# Create and update image manifest
+  - docker manifest create dtroncy/rpi-apache:latest dtroncy/rpi-apache:latest
+  - docker manifest annotate dtroncy/rpi-apache:latest dtroncy/rpi-apache:latest --arch arm
+  - docker manifest push dtroncy/rpi-apache:latest
+  - docker manifest create dtroncy/rpi-apache:$apache_version dtroncy/rpi-apache:$apache_version
+  - docker manifest annotate dtroncy/rpi-apache:$apache_version dtroncy/rpi-apache:$apache_version --arch arm
+  - docker manifest push dtroncy/rpi-apache:$apache_version
