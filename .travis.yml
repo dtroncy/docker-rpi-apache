@@ -1,32 +1,29 @@
 sudo: required
-services:
-  - docker
 language: bash
 env:
   - apache_version=2.4.35-r0
-addons:
-  apt:
-    packages:
-      - docker-ce
+# install last docker version
+before_install:
+  - sudo apt-get remove docker docker-engine docker.io containerd runc
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 script:
 # activate experimental docker feature
   - export DOCKER_CLI_EXPERIMENTAL=enabled
 # prepare qemu
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
-# build image
-  - docker build --build-arg apache_version=$apache_version -t dtroncy/rpi-apache .
-# push image
+# if master branch, build image and push it
   - >
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
-      docker tag dtroncy/rpi-apache dtroncy/rpi-apache:$apache_version
-      docker push dtroncy/rpi-apache:$apache_version
-      docker push dtroncy/rpi-apache
+      docker buildx build --platform linux/arm/v6 --build-arg apache_version=$apache_version -t dtroncy/rpi-apache:latest --push .
+      docker buildx build --platform linux/arm/v6 --build-arg apache_version=$apache_version -t dtroncy/rpi-apache:$apache_version --push .
     fi
-# Create and update image manifest
-  - docker manifest create dtroncy/rpi-apache:latest dtroncy/rpi-apache:latest
-  - docker manifest annotate dtroncy/rpi-apache:latest dtroncy/rpi-apache:latest --arch arm
-  - docker manifest push dtroncy/rpi-apache:latest
-  - docker manifest create dtroncy/rpi-apache:$apache_version dtroncy/rpi-apache:$apache_version
-  - docker manifest annotate dtroncy/rpi-apache:$apache_version dtroncy/rpi-apache:$apache_version --arch arm
-  - docker manifest push dtroncy/rpi-apache:$apache_version
+# if develop branch, build image and load it
+  - >
+    if [ "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      docker buildx build --platform linux/arm/v6 --build-arg apache_version=$apache_version -t dtroncy/rpi-apache:latest --load .
+      docker buildx build --platform linux/arm/v6 --build-arg apache_version=$apache_version -t dtroncy/rpi-apache:$apache_version --load .
+    fi
