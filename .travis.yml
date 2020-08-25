@@ -1,7 +1,7 @@
 sudo: required
 language: bash
 env:
-  - apache_version=2.4.43-r0
+  - apache_version=2.4.46-r0
 # install last docker version
 before_install:
   - sudo apt-get remove docker docker-engine docker.io containerd runc
